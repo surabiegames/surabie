@@ -6,9 +6,15 @@ import { db } from "@/lib/db"
 import { userNameSchema } from "@/lib/validations/user"
 
 const routeContextSchema = z.object({
-  params: z.object({
-    userId: z.string(),
-  }),
+  params: z.promise(
+    z.object({
+      userId: z.string(),
+    })
+  ),
+})
+
+const routeParamsSchema = z.object({
+  userId: z.string(),
 })
 
 export async function PATCH(
@@ -17,7 +23,8 @@ export async function PATCH(
 ) {
   try {
     // Validate the route context.
-    const { params } = routeContextSchema.parse(context)
+    const { params: paramsPromise } = routeContextSchema.parse(context)
+    const params = routeParamsSchema.parse(await paramsPromise)
 
     // Ensure user is authentication and has access to this user.
     const session = await getServerSession(authOptions)

@@ -1,6 +1,7 @@
+"use client"
+
 import * as React from "react"
 import Image from "next/image"
-import { useMDXComponent } from "next-contentlayer/hooks"
 
 import { cn } from "@/lib/utils"
 import { Callout } from "@/components/callout"
@@ -157,11 +158,13 @@ interface MdxProps {
 }
 
 export function Mdx({ code }: MdxProps) {
-  const Component = useMDXComponent(code)
+  void code
 
   return (
     <div className="mdx">
-      <Component components={components} />
+      <p className="text-sm text-muted-foreground">
+        MDX rendering is temporarily disabled while upgrading dependencies.
+      </p>
     </div>
   )
 }

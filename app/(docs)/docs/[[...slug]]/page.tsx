@@ -14,13 +14,14 @@ import { env } from "@/env.mjs"
 import { absoluteUrl } from "@/lib/utils"
 
 interface DocPageProps {
-  params: {
+  params: Promise<{
     slug: string[]
-  }
+  }>
 }
 
 async function getDocFromParams(params) {
-  const slug = params.slug?.join("/") || ""
+  const resolvedParams = await params
+  const slug = resolvedParams.slug?.join("/") || ""
   const doc = allDocs.find((doc) => doc.slugAsParams === slug)
 
   if (!doc) {
@@ -73,7 +74,7 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams(): Promise<
-  DocPageProps["params"][]
+  { slug: string[] }[]
 > {
   return allDocs.map((doc) => ({
     slug: doc.slugAsParams.split("/"),

@@ -6,9 +6,9 @@
 > - May contain deprecated APIs or patterns.
 > - Is not recommended for use in production environments.
 
-# Taxonomy
+# Surabie
 
-An open source application built using the new router, server components and everything new in Next.js 13.
+Surabie is a modern web platform starter for finance and operations workflows.
 
 ## About this project
 
@@ -58,26 +58,71 @@ I might add this later. For now, I want to see how far we can get using Next.js 
 
 If you have some suggestions, feel free to create an issue.
 
-## Running Locally
+## Running Locally (PostgreSQL)
 
-1. Install dependencies using pnpm:
+1. Install dependencies:
 
 ```sh
 pnpm install
 ```
 
-2. Copy `.env.example` to `.env.local` and update the variables.
+2. Copy environment variables:
 
 ```sh
 cp .env.example .env.local
 ```
 
-3. Start the development server:
+3. Start PostgreSQL (Docker):
+
+```sh
+docker run -d --name surabie-postgres \
+  -e POSTGRES_USER=surabie \
+  -e POSTGRES_PASSWORD=surabie \
+  -e POSTGRES_DB=surabie \
+  -p 5433:5432 \
+  postgres:16
+```
+
+4. Push Prisma schema:
+
+```sh
+pnpm prisma db push
+pnpm prisma generate
+```
+
+5. Start the development server:
 
 ```sh
 pnpm dev
 ```
 
+### Local auth behavior
+
+- Auth uses **NextAuth** with the **email (magic link)** provider and **JWT sessions**; the **Prisma adapter** persists users in PostgreSQL **when you open the magic link** (stored in `public.users`). Verify with **`pnpm prisma studio`** (same `DATABASE_URL` as the app).
+
+**Magic link versus staying signed in**
+
+- You only complete a magic link flow when you **submit your email again on `/login` or `/register`**, **sign out**, the **session cookie expires** (defaults to roughly **90 days**), or cookies are cleared (private window, wipe site data, different browser/origin/port).
+- After you open the magic link once, you can revisit **`/dashboard` many times without a new email** until one of those events happens again.
+
+Prefer **OAuth** (e.g. GitHub) one-click authorize or **email + password** (bcrypt and extra UI)? Those are alternate auth flows and can be added separately.
+
+- In local dev (`next dev`), a magic link is **always** printed when you request email sign-in. With `pnpm dev` plus `concurrently`, the line usually appears under the **`[1]`** Next.js stream (not `[0]` Contentlayer).
+  - look for `[auth:dev] Magic link for ...`
+- `POSTMARK_API_TOKEN` can be empty or `dev-*` locally; omit or use placeholders for Postmark templates until you send real mail.
+- Open that URL in the same browser to finish sign-in and reach `/dashboard`.
+- **GitHub sign-in** appears only if `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are set to real OAuth app values (not `dev-*`).
+- For production email, set Postmark to a real token and numeric `POSTMARK_SIGN_IN_TEMPLATE` / `POSTMARK_ACTIVATION_TEMPLATE`, and set `NEXTAUTH_URL` to your public site URL.
+
+### Optional cleanup from old MySQL setup
+
+If you previously used local MySQL for this project:
+
+```sh
+docker stop surabie-mysql
+docker rm surabie-mysql
+```
+
 ## License
 
-Licensed under the [MIT license](https://github.com/shadcn/taxonomy/blob/main/LICENSE.md).
+Licensed under the [MIT license](https://github.com/surabiegames/surabie/blob/main/LICENSE.md).

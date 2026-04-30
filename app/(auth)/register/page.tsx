@@ -3,6 +3,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
+import { isGitHubOAuthConfigured } from "@/lib/auth"
 import { UserAuthForm } from "@/components/user-auth-form"
 
 export const metadata = {
@@ -11,6 +12,8 @@ export const metadata = {
 }
 
 export default function RegisterPage() {
+  const showGitHub = isGitHubOAuthConfigured()
+
   return (
     <div className="container grid h-screen w-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
       <Link
@@ -34,7 +37,7 @@ export default function RegisterPage() {
               Enter your email below to create your account
             </p>
           </div>
-          <UserAuthForm />
+          <UserAuthForm showGitHub={showGitHub} />
           <p className="px-8 text-center text-sm text-muted-foreground">
             By clicking continue, you agree to our{" "}
             <Link

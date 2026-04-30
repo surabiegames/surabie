@@ -4,6 +4,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
+import { isGitHubOAuthConfigured } from "@/lib/auth"
 import { UserAuthForm } from "@/components/user-auth-form"
 
 export const metadata: Metadata = {
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 }
 
 export default function LoginPage() {
+  const showGitHub = isGitHubOAuthConfigured()
+
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <Link
@@ -36,7 +39,7 @@ export default function LoginPage() {
             Enter your email to sign in to your account
           </p>
         </div>
-        <UserAuthForm />
+        <UserAuthForm showGitHub={showGitHub} />
         <p className="px-8 text-center text-sm text-muted-foreground">
           <Link
             href="/register"

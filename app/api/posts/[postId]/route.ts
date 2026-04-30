@@ -6,9 +6,15 @@ import { db } from "@/lib/db"
 import { postPatchSchema } from "@/lib/validations/post"
 
 const routeContextSchema = z.object({
-  params: z.object({
-    postId: z.string(),
-  }),
+  params: z.promise(
+    z.object({
+      postId: z.string(),
+    })
+  ),
+})
+
+const routeParamsSchema = z.object({
+  postId: z.string(),
 })
 
 export async function DELETE(
@@ -17,7 +23,8 @@ export async function DELETE(
 ) {
   try {
     // Validate the route params.
-    const { params } = routeContextSchema.parse(context)
+    const { params: paramsPromise } = routeContextSchema.parse(context)
+    const params = routeParamsSchema.parse(await paramsPromise)
 
     // Check if the user has access to this post.
     if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
@@ -47,7 +54,8 @@ export async function PATCH(
 ) {
   try {
     // Validate route params.
-    const { params } = routeContextSchema.parse(context)
+    const { params: paramsPromise } = routeContextSchema.parse(context)
+    const params = routeParamsSchema.parse(await paramsPromise)
 
     // Check if the user has access to this post.
     if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {

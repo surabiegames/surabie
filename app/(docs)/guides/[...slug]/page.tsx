@@ -16,13 +16,14 @@ import { absoluteUrl, cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
 interface GuidePageProps {
-  params: {
+  params: Promise<{
     slug: string[]
-  }
+  }>
 }
 
 async function getGuideFromParams(params) {
-  const slug = params?.slug?.join("/")
+  const resolvedParams = await params
+  const slug = resolvedParams?.slug?.join("/")
   const guide = allGuides.find((guide) => guide.slugAsParams === slug)
 
   if (!guide) {
@@ -75,7 +76,7 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams(): Promise<
-  GuidePageProps["params"][]
+  { slug: string[] }[]
 > {
   return allGuides.map((guide) => ({
     slug: guide.slugAsParams.split("/"),

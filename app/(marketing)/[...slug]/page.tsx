@@ -11,13 +11,14 @@ import { siteConfig } from "@/config/site"
 import { absoluteUrl } from "@/lib/utils"
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string[]
-  }
+  }>
 }
 
 async function getPageFromParams(params) {
-  const slug = params?.slug?.join("/")
+  const resolvedParams = await params
+  const slug = resolvedParams?.slug?.join("/")
   const page = allPages.find((page) => page.slugAsParams === slug)
 
   if (!page) {
@@ -69,7 +70,7 @@ export async function generateMetadata({
   }
 }
 
-export async function generateStaticParams(): Promise<PageProps["params"][]> {
+export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   return allPages.map((page) => ({
     slug: page.slugAsParams.split("/"),
   }))

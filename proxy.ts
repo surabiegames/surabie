@@ -3,7 +3,7 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
 export default withAuth(
-  async function middleware(req) {
+  async function proxy(req) {
     const token = await getToken({ req })
     const isAuth = !!token
     const isAuthPage =
@@ -19,21 +19,21 @@ export default withAuth(
     }
 
     if (!isAuth) {
-      let from = req.nextUrl.pathname;
+      let from = req.nextUrl.pathname
       if (req.nextUrl.search) {
-        from += req.nextUrl.search;
+        from += req.nextUrl.search
       }
 
       return NextResponse.redirect(
         new URL(`/login?from=${encodeURIComponent(from)}`, req.url)
-      );
+      )
     }
   },
   {
     callbacks: {
       async authorized() {
         // This is a work-around for handling redirect on auth pages.
-        // We return true here so that the middleware function above
+        // We return true here so that the proxy function above
         // is always called.
         return true
       },

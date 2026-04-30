@@ -1,4 +1,6 @@
+import type { ReactElement } from "react"
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
   Check,
@@ -17,18 +19,18 @@ import {
   MoreVertical,
   Pizza,
   Plus,
+  Scale,
   Settings,
   SunMedium,
   Trash,
-  Twitter,
   User,
   X,
-  type Icon as LucideIcon,
 } from "lucide-react"
 
-export type Icon = LucideIcon
+export type Icon = (props: LucideProps) => ReactElement
 
 export const Icons = {
+  activity: Activity,
   logo: Command,
   close: X,
   spinner: Loader2,
@@ -38,6 +40,7 @@ export const Icons = {
   post: FileText,
   page: File,
   media: Image,
+  scale: Scale,
   settings: Settings,
   billing: CreditCard,
   ellipsis: MoreVertical,
@@ -67,6 +70,6 @@ export const Icons = {
       ></path>
     </svg>
   ),
-  twitter: Twitter,
+  twitter: X,
   check: Check,
 }

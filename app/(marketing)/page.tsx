@@ -7,13 +7,21 @@ import { buttonVariants } from "@/components/ui/button"
 
 async function getGitHubStars(): Promise<string | null> {
   try {
+    const githubRepoPath = new URL(siteConfig.links.github).pathname.replace(
+      /^\//,
+      ""
+    )
+    const headers: Record<string, string> = {
+      Accept: "application/vnd.github+json",
+    }
+    if (env.GITHUB_ACCESS_TOKEN.trim() !== "") {
+      headers.Authorization = `Bearer ${env.GITHUB_ACCESS_TOKEN}`
+    }
+
     const response = await fetch(
-      "https://api.github.com/repos/shadcn/taxonomy",
+      `https://api.github.com/repos/${githubRepoPath}`,
       {
-        headers: {
-          Accept: "application/vnd.github+json",
-          Authorization: `Bearer ${env.GITHUB_ACCESS_TOKEN}`,
-        },
+        headers,
         next: {
           revalidate: 60,
         },
@@ -171,7 +179,7 @@ export default async function IndexPage() {
         </div>
         <div className="mx-auto text-center md:max-w-[58rem]">
           <p className="leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-            Taxonomy also includes a blog and a full-featured documentation site
+            Surabie also includes a blog and a full-featured documentation site
             built using Contentlayer and MDX.
           </p>
         </div>
@@ -182,7 +190,7 @@ export default async function IndexPage() {
             Proudly Open Source
           </h2>
           <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-            Taxonomy is open source and powered by open source software. <br />{" "}
+            Surabie is open source and powered by open source software. <br />{" "}
             The code is available on{" "}
             <Link
               href={siteConfig.links.github}

@@ -15,11 +15,18 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { Icons } from "@/components/icons"
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** GitHub OAuth; hide when OAuth env is not configured. */
+  showGitHub?: boolean
+}
 
 type FormData = z.infer<typeof userAuthSchema>
 
-export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
+export function UserAuthForm({
+  className,
+  showGitHub = false,
+  ...props
+}: UserAuthFormProps) {
   const {
     register,
     handleSubmit,
@@ -45,14 +52,20 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     if (!signInResult?.ok) {
       return toast({
         title: "Something went wrong.",
-        description: "Your sign in request failed. Please try again.",
+        description:
+          signInResult?.error === "Configuration"
+            ? "Auth is misconfigured on the server. Check NEXTAUTH_SECRET, DATABASE_URL, and the server logs."
+            : "Your sign in request failed. Please try again.",
         variant: "destructive",
       })
     }
 
     return toast({
       title: "Check your email",
-      description: "We sent you a login link. Be sure to check your spam too.",
+      description:
+        process.env.NODE_ENV === "development"
+          ? "If Postmark is not set up, copy the magic link from the terminal where pnpm dev is running (look for [auth:dev]). Otherwise check your inbox and spam folder."
+          : "We sent you a login link. Be sure to check your spam folder too.",
     })
   }
 
@@ -88,32 +101,36 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           </button>
         </div>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-      <button
-        type="button"
-        className={cn(buttonVariants({ variant: "outline" }))}
-        onClick={() => {
-          setIsGitHubLoading(true)
-          signIn("github")
-        }}
-        disabled={isLoading || isGitHubLoading}
-      >
-        {isGitHubLoading ? (
-          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <Icons.gitHub className="mr-2 h-4 w-4" />
-        )}{" "}
-        Github
-      </button>
+      {showGitHub ? (
+        <>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={cn(buttonVariants({ variant: "outline" }))}
+            onClick={() => {
+              setIsGitHubLoading(true)
+              signIn("github")
+            }}
+            disabled={isLoading || isGitHubLoading}
+          >
+            {isGitHubLoading ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.gitHub className="mr-2 h-4 w-4" />
+            )}{" "}
+            Github
+          </button>
+        </>
+      ) : null}
     </div>
   )
 }

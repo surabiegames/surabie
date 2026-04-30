@@ -15,8 +15,8 @@ export function DocsSidebarNav({ items }: DocsSidebarNavProps) {
 
   return items.length ? (
     <div className="w-full">
-      {items.map((item, index) => (
-        <div key={index} className={cn("pb-8")}>
+      {items.map((item, sectionIndex) => (
+        <div key={`${sectionIndex}-${item.title}`} className={cn("pb-8")}>
           <h4 className="mb-1 rounded-md px-2 py-1 text-sm font-medium">
             {item.title}
           </h4>
@@ -40,10 +40,12 @@ export function DocsSidebarNavItems({
 }: DocsSidebarNavItemsProps) {
   return items?.length ? (
     <div className="grid grid-flow-row auto-rows-max text-sm">
-      {items.map((item, index) =>
-        !item.disabled && item.href ? (
+      {items.map((item, index) => {
+        // href can repeat (e.g. many "in progress" placeholders) — index keeps keys unique.
+        const key = `${index}-${item.href ?? "item"}-${item.title}`
+        return !item.disabled && item.href ? (
           <Link
-            key={index}
+            key={key}
             href={item.href}
             className={cn(
               "flex w-full items-center rounded-md p-2 hover:underline",
@@ -57,11 +59,14 @@ export function DocsSidebarNavItems({
             {item.title}
           </Link>
         ) : (
-          <span className="flex w-full cursor-not-allowed items-center rounded-md p-2 opacity-60">
+          <span
+            key={key}
+            className="flex w-full cursor-not-allowed items-center rounded-md p-2 opacity-60"
+          >
             {item.title}
           </span>
         )
-      )}
+      })}
     </div>
   ) : null
 }
