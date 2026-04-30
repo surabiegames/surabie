@@ -5,6 +5,7 @@ import "./env.mjs"
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ["@surabie/db", "@surabie/accounting-core"],
   images: {
     remotePatterns: [
       {

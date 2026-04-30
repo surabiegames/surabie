@@ -1,0 +1,249 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum LedgerAccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum FiscalPeriodStatus {
+  OPEN
+  SOFT_CLOSED
+  LOCKED
+}
+
+enum JournalSourceType {
+  MANUAL
+  CASH_IN
+  CASH_OUT
+  INVENTORY_ADJUSTMENT
+}
+
+enum JournalEntryStatus {
+  DRAFT
+  POSTED
+  REVERSED
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now()) @map(name: "created_at")
+  updatedAt         DateTime @default(now()) @map(name: "updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map(name: "accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map(name: "sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now()) @map(name: "created_at")
+  updatedAt     DateTime  @default(now()) @map(name: "updated_at")
+
+  accounts Account[]
+  sessions Session[]
+  Post     Post[]
+  userRoles UserRole[]
+
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
+
+  @@map(name: "users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map(name: "verification_tokens")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   Json?
+  published Boolean  @default(false)
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @default(now()) @map(name: "updated_at")
+  authorId  String
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@map(name: "posts")
+}
+
+model Company {
+  id                   String          @id @default(cuid())
+  name                 String
+  baseCurrencyCode     String          @default("IDR")
+  timezone             String          @default("Asia/Jakarta")
+  fiscalYearStartMonth Int             @default(1)
+  createdAt            DateTime        @default(now()) @map(name: "created_at")
+  updatedAt            DateTime        @updatedAt @map(name: "updated_at")
+  userRoles            UserRole[]
+  ledgerAccounts       LedgerAccount[]
+  fiscalPeriods        FiscalPeriod[]
+  journalEntries       JournalEntry[]
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String
+  role      AppRole
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @updatedAt @map(name: "updated_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+}
+
+model LedgerAccount {
+  id               String            @id @default(cuid())
+  companyId        String
+  code             String
+  name             String
+  type             LedgerAccountType
+  normalBalance    NormalBalance
+  parentAccountId  String?
+  isActive         Boolean           @default(true)
+  allowManualEntry Boolean           @default(true)
+  createdAt        DateTime          @default(now()) @map(name: "created_at")
+  updatedAt        DateTime          @updatedAt @map(name: "updated_at")
+  createdByUserId  String
+  updatedByUserId  String
+
+  company   Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parent    LedgerAccount? @relation("LedgerAccountTree", fields: [parentAccountId], references: [id], onDelete: SetNull)
+  children  LedgerAccount[] @relation("LedgerAccountTree")
+  journalLines JournalLine[]
+
+  @@unique([companyId, code])
+}
+
+model FiscalPeriod {
+  id             String            @id @default(cuid())
+  companyId      String
+  year           Int
+  month          Int
+  startDate      DateTime
+  endDate        DateTime
+  status         FiscalPeriodStatus @default(OPEN)
+  closedAt       DateTime?
+  closedByUserId String?
+  createdAt      DateTime           @default(now()) @map(name: "created_at")
+  updatedAt      DateTime           @updatedAt @map(name: "updated_at")
+  createdByUserId String
+  updatedByUserId String
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalEntries JournalEntry[]
+
+  @@unique([companyId, year, month])
+}
+
+model JournalEntry {
+  id                String           @id @default(cuid())
+  companyId         String
+  fiscalPeriodId    String
+  journalNo         String
+  entryDate         DateTime
+  description       String
+  sourceType        JournalSourceType @default(MANUAL)
+  sourceId          String?
+  status            JournalEntryStatus @default(DRAFT)
+  postedAt          DateTime?
+  postedByUserId    String?
+  reversalOfEntryId String?
+  createdAt         DateTime          @default(now()) @map(name: "created_at")
+  updatedAt         DateTime          @updatedAt @map(name: "updated_at")
+  createdByUserId   String
+  updatedByUserId   String
+
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fiscalPeriod FiscalPeriod @relation(fields: [fiscalPeriodId], references: [id], onDelete: Restrict)
+  lines      JournalLine[]
+  reversalOf JournalEntry?  @relation("JournalEntryReversal", fields: [reversalOfEntryId], references: [id], onDelete: SetNull)
+  reversals  JournalEntry[] @relation("JournalEntryReversal")
+
+  @@unique([companyId, journalNo])
+}
+
+model JournalLine {
+  id             String   @id @default(cuid())
+  journalEntryId String
+  lineNo         Int
+  accountId      String
+  description    String?
+  debit          Decimal  @db.Decimal(20, 2)
+  credit         Decimal  @db.Decimal(20, 2)
+  currencyCode   String   @default("IDR")
+  fxRateToBase   Decimal  @db.Decimal(20, 6)
+  debitInBase    Decimal  @db.Decimal(20, 2)
+  creditInBase   Decimal  @db.Decimal(20, 2)
+  createdAt      DateTime @default(now()) @map(name: "created_at")
+  updatedAt      DateTime @updatedAt @map(name: "updated_at")
+  createdByUserId String
+  updatedByUserId String
+
+  journalEntry JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account      LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([journalEntryId, lineNo])
+}

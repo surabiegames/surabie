@@ -1,0 +1,20 @@
+{
+  "name": "@surabie/db",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "prisma:generate": "prisma generate --schema ./prisma/schema.prisma",
+    "prisma:push": "prisma db push --schema ./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.16.2"
+  },
+  "devDependencies": {
+    "prisma": "^4.16.2"
+  }
+}

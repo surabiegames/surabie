@@ -66,10 +66,10 @@ If you have some suggestions, feel free to create an issue.
 pnpm install
 ```
 
-2. Copy environment variables:
+2. Copy environment variables into web app:
 
 ```sh
-cp .env.example .env.local
+cp apps/web/.env.example apps/web/.env.local
 ```
 
 3. Start PostgreSQL (Docker):
@@ -86,14 +86,38 @@ docker run -d --name surabie-postgres \
 4. Push Prisma schema:
 
 ```sh
-pnpm prisma db push
-pnpm prisma generate
+pnpm --filter @surabie/web prisma db push
+pnpm --filter @surabie/web prisma generate
 ```
 
 5. Start the development server:
 
 ```sh
 pnpm dev
+```
+
+## Monorepo Workspace (Current Step)
+
+This repository now uses **pnpm workspace** + **Turborepo** orchestration.
+
+- Workspace definition: `pnpm-workspace.yaml`
+- Pipeline definition: `turbo.json`
+- Reserved folders:
+  - `apps/` for runnable apps
+  - `packages/` for shared internal libraries
+
+Current Next.js app now lives in `apps/web`.
+Core shared packages extracted:
+- `packages/db` (Prisma schema + client)
+- `packages/accounting-core` (ledger domain services and trial-balance logic)
+
+Useful commands from repository root:
+
+```sh
+pnpm dev
+pnpm typecheck
+pnpm --filter @surabie/web prisma:generate
+pnpm --filter @surabie/web prisma:push
 ```
 
 ### Local auth behavior
