@@ -3,8 +3,8 @@
   "version": "0.2.0",
   "private": true,
   "author": {
-    "name": "shadcn",
-    "url": "https://twitter.com/shadcn"
+    "name": "Wiska Prayoga",
+    "email": "surabiegames@gmail.com"
   },
   "scripts": {
     "dev": "concurrently \"contentlayer dev\" \"next dev --webpack\"",

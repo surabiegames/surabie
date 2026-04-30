@@ -3,7 +3,7 @@ import localFont from "next/font/local"
 
 import "@/styles/globals.css"
 import { siteConfig } from "@/config/site"
-import { absoluteUrl, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from "@/components/analytics"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
@@ -39,11 +39,11 @@ export const metadata = {
   ],
   authors: [
     {
-      name: "shadcn",
-      url: "https://shadcn.com",
+      name: "Wiska Prayoga",
+      url: "https://github.com/surabiegames",
     },
   ],
-  creator: "shadcn",
+  creator: "Wiska Prayoga",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -57,7 +57,7 @@ export const metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     images: [`${siteConfig.url}/og.jpg`],
-    creator: "@shadcn",
+    creator: "@surabie",
   },
   icons: {
     icon: "/favicon.ico",
